@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Суть Такова: 3D Экшон (Корованы, Эльфы, Дворец, Злодей)</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Three.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+  <div id="game-container"></div>
+
+  <!-- Прицел -->
+  <div id="crosshair">+</div>
+
+  <!-- HUD Интерфейс игрока -->
+  <div id="hud">
+    <div id="status-panel">
+      <div class="hud-row"><span class="label">Фракция:</span> <span id="faction-name" class="val">-</span></div>
+      <div class="hud-row"><span class="label">Здоровье:</span> <div class="bar-container"><div id="hp-bar"></div></div> <span id="hp-text">100/100</span></div>
+      <div class="hud-row"><span class="label">Золото:</span> <span id="gold-val" class="val">150</span> 💰</div>
+      <div class="hud-row"><span class="label">Локация:</span> <span id="zone-name" class="val">Нейтральные земли</span></div>
+    </div>
+
+    <!-- Панель увечий и частей тела -->
+    <div id="body-doll">
+      <div class="doll-title">Состояние тела</div>
+      <div id="part-eye" class="body-part ok">Глаза: Оба видят</div>
+      <div id="part-arm" class="body-part ok">Рука: Цела</div>
+      <div id="part-leg" class="body-part ok">Нога: Цела (Бег)</div>
+      <div id="bleeding-alert" class="alert-pulse hidden">⚠️ КРОВОТЕЧЕНИЕ!</div>
+    </div>
+
+    <!-- Текущие задачи / приказы -->
+    <div id="quest-panel">
+      <div id="commander-order-title">Приказ / Задача:</div>
+      <div id="commander-order-text">Исследуйте мир или выберите фракцию</div>
+    </div>
+
+    <!-- Управление злодея (приказы войскам) -->
+    <div id="villain-controls" class="hidden">
+      <div class="villain-title">Приказы армии Злодея:</div>
+      <button class="cmd-btn" id="btn-army-follow">[1] За мной!</button>
+      <button class="cmd-btn" id="btn-army-attack-palace">[2] В АТАКУ НА ДВОРЕЦ!</button>
+      <button class="cmd-btn" id="btn-army-raid-elves">[3] Набег на эльфов!</button>
+    </div>
+
+    <!-- Оповещения по центру (например: КОРОВАН ОГРАБЛЕН!) -->
+    <div id="banner-notification" class="hidden"></div>
+
+    <div id="action-prompt" class="hidden">[E] Взаимодействовать</div>
+  </div>
+
+  <!-- Слепота от выколотого глаза (покрывает половину экрана) -->
+  <div id="eye-blindness-overlay" class="hidden"></div>
+
+  <!-- Окно выбора фракции в начале -->
+  <div id="faction-modal" class="modal">
+    <div class="modal-box">
+      <h2>Выберите за кого играть:</h2>
+      <p class="subtitle">3Д-экшон: Суть такова...</p>
+      <div class="faction-cards">
+        <div class="faction-card" data-faction="elves">
+          <div class="card-icon">🧝‍♂️🏹</div>
+          <h3>Лесные Эльфы</h3>
+          <p>База в густом лесу, деревянные домики. Солдаты дворца и злодеи набигают. <strong>МОЖНО ГРАБИТЬ КОРОВАНЫ!</strong></p>
+        </div>
+        <div class="faction-card" data-faction="guards">
+          <div class="card-icon">🛡️⚔️</div>
+          <h3>Охрана Дворца</h3>
+          <p>Слушайтесь сурового командира, защищайте трон от шпионов и партизан, совершайте карательные набеги на форт и лес.</p>
+        </div>
+        <div class="faction-card" data-faction="villain">
+          <div class="card-icon">👑🔥</div>
+          <h3>Злодей (Лорд Тьмы)</h3>
+          <p>Сам себе командир в старом горном форте! Отдавайте приказы своим ордам и лично возглавьте штурм императорского дворца.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Торговая лавка Daggerfall (протезы, бинты, снаряжение) -->
+  <div id="shop-modal" class="modal hidden">
+    <div class="modal-box shop-box">
+      <div class="modal-header">
+        <h2>Лавка Лекаря и Кузнеца (Торговля)</h2>
+        <button id="btn-close-shop" class="close-btn">✖</button>
+      </div>
+      <p class="shop-desc">Купите протезы, исцеление или снаряжение в традициях Daggerfall.</p>
+      <div id="shop-items-list">
+        <!-- Генерируется динамически через JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Подсказка по управлению -->
+  <div id="controls-hint">
+    [WASD] Движение | [Мышь] Обзор | [ЛКМ] Атака | [Пробел] Прыжок | [E] Действие/Торговля | [F5] Сохранить | [F9] Загрузить
+  </div>
+
+  <!-- Сообщение о паузе/клике для Pointer Lock -->
+  <div id="blocker">
+    <div id="instructions">
+      <h1>СУТЬ ТАКОВА: 3D ЭКШОН</h1>
+      <p>Нажмите ЛКМ в любом месте экрана для входа в игру и захвата мыши</p>
+      <p class="sub">В игре реализованы LOD-деревья, грабеж корованов, 4 зоны, расчлененка и протезы!</p>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
