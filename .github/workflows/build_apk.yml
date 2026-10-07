@@ -20,8 +20,9 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.0'
+          flutter-version: '3.41.6'
           channel: 'stable'
+          cache: true
 
       - name: Install dependencies
         working-directory: ./android_app
