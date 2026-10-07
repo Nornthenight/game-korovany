@@ -679,16 +679,30 @@ function createMedievalHouse(wallCol, roofCol) {
 // --- УПРАВЛЕНИЕ (WASD, Мышь, Прыжки, Атака) ---
 function setupControls() {
   const blocker = document.getElementById('blocker');
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+  if (isTouchDevice) {
+    // На мобильных устройствах не требуется Pointer Lock браузера
+    isLocked = true;
+    blocker.classList.add('hidden');
+    const hint = document.getElementById('controls-hint');
+    if (hint) hint.innerText = "Джойстик слева: Ходьба | Справа: Обзор | ⚔️ Атака | 🦘 Прыжок | 🖐️ Действие";
+  }
 
   blocker.addEventListener('click', () => {
-    document.body.requestPointerLock();
+    if (!isTouchDevice) {
+      document.body.requestPointerLock();
+    } else {
+      isLocked = true;
+      blocker.classList.add('hidden');
+    }
   });
 
   document.addEventListener('pointerlockchange', () => {
     if (document.pointerLockElement === document.body) {
       isLocked = true;
       blocker.classList.add('hidden');
-    } else {
+    } else if (!isTouchDevice) {
       isLocked = false;
       blocker.classList.remove('hidden');
     }
@@ -1279,26 +1293,40 @@ function animate() {
   renderer.render(scene, camera);
 }
 
+function getTerrainHeight(x, z) {
+  if (z > 40) {
+    const dist = z - 40;
+    return Math.sin(x * 0.05) * 6 + Math.cos(z * 0.05) * 8 + (dist * 0.4);
+  }
+  return Math.sin(x * 0.04) * 0.8 + Math.cos(z * 0.04) * 0.8;
+}
+
 // Движение игрока и физика
 function updatePlayer(delta) {
-  // Эффект ползания при потере ноги
+  const groundY = getTerrainHeight(yawObject.position.x, yawObject.position.z);
+  const eyeHeight = GameState.player.limbs.leg === 'damaged' 
+    ? (GameState.player.hasWheelchair ? 1.3 : 0.7) 
+    : 2.0;
+
+  // Скорость перемещения
   if (GameState.player.limbs.leg === 'damaged') {
-    if (GameState.player.hasWheelchair) {
-      yawObject.position.y = 1.3;
-      GameState.player.speed = 0.22;
-    } else {
-      yawObject.position.y = 0.7; // Камера в упор к полу (ползает)
-      GameState.player.speed = 0.07;
-    }
+    GameState.player.speed = GameState.player.hasWheelchair ? 0.22 : 0.07;
   } else {
-    yawObject.position.y = Math.max(2, yawObject.position.y + velocity.y);
     GameState.player.speed = 0.25;
   }
 
-  // Гравитация
-  if (yawObject.position.y > 2.01 && !GameState.player.crawling) {
+  // Физика гравитации и высоты пола
+  const targetFloorY = groundY + eyeHeight;
+  if (yawObject.position.y > targetFloorY + 0.01) {
     velocity.y -= 0.015;
+    yawObject.position.y += velocity.y;
+    if (yawObject.position.y < targetFloorY) {
+      yawObject.position.y = targetFloorY;
+      velocity.y = 0;
+      canJump = true;
+    }
   } else {
+    yawObject.position.y = targetFloorY;
     velocity.y = 0;
     canJump = true;
   }
