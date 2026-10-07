@@ -1,9 +1,12 @@
-name: Build Android APK
+name: Build and Release Android APK
 
 on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -37,3 +40,23 @@ jobs:
         with:
           name: Korovany-3D-Android-APK
           path: android_app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "3D-Экшон: Суть Такова v1.0.0 (Release)"
+          body: |
+            ## 🎮 3D-Экшон: «Суть Такова» — Релиз Android APK!
+            
+            ### Возможности игры:
+            * **3 фракции**: Лесные эльфы, Охрана дворца, Злодей (Лорд Тьмы)
+            * **Грабеж корованов** на центральном тракте
+            * **4 зоны мира**: Деревня людей, Императорский дворец, Эльфийский лес, Горный форт Злодея
+            * **LOD-система деревьев** (вдали картинкой, вблизи 3D)
+            * **Увечья и протезы в стиле Daggerfall** (выколотый глаз, отрубленная рука, перебитая нога, покупка протезов и коляски)
+            * **3D-трупы** и сохранения (F5 / F9)
+            * Сенсорное управление для смартфонов (виртуальный джойстик и кнопки действий)
+          files: android_app/build/app/outputs/flutter-apk/app-release.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
